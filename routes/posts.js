@@ -62,8 +62,6 @@ router.get('/author/:authorId', async (req, res) => {
 });
 
 // POST /api/posts - Crear un nuevo post
-Explain
-Copy
 router.post('/', async (req, res) => {
   const { title, content, author_id, published } = req.body;
   
