@@ -1,22 +1,28 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, beforeAll } from 'vitest';
 import request from 'supertest';
-import app from '../server';
+import app from '../server.js';
+import pool from '../db/config.js';
 
-describe('POST /usuarios', () => {
+// Limpia la tabla de autores antes de empezar para que el email esté libre
+beforeAll(async () => {
+  await pool.query('DELETE FROM authors WHERE email = $1', ['juan@example.com']);
+});
+
+describe('POST /api/authors', () => {
   test('crea usuario con datos válidos', async () => {
     const response = await request(app)
-      .post('/usuarios')
-      .send({ nombre: 'Juan', email: 'juan@example.com' });
+      .post('/api/authors')
+      .send({ name: 'Juan', email: 'juan@example.com' });
 
     expect(response.statusCode).toBe(201);
     expect(response.body).toHaveProperty('id');
-    expect(response.body.nombre).toBe('Juan');
+    expect(response.body.name).toBe('Juan');
     expect(response.body.email).toBe('juan@example.com');
   });
 
   test('rechaza request sin nombre', async () => {
     const response = await request(app)
-      .post('/usuarios')
+      .post('/api/authors')
       .send({ email: 'juan@example.com' });
 
     expect(response.statusCode).toBe(400);
@@ -25,8 +31,8 @@ describe('POST /usuarios', () => {
 
   test('rechaza request sin email', async () => {
     const response = await request(app)
-      .post('/usuarios')
-      .send({ nombre: 'Juan' });
+      .post('/api/authors')
+      .send({ name: 'Juan' });
 
     expect(response.statusCode).toBe(400);
     expect(response.body.error).toContain('requeridos');
@@ -34,7 +40,7 @@ describe('POST /usuarios', () => {
 
   test('rechaza request vacío', async () => {
     const response = await request(app)
-      .post('/usuarios')
+      .post('/api/authors')
       .send({});
 
     expect(response.statusCode).toBe(400);

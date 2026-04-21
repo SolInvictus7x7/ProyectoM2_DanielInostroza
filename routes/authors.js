@@ -3,6 +3,7 @@ loadEnvFile('.env');
 const express = require('express');
 const router = express.Router();
 const pool = require('../db/config');
+const { validarEmail } = require('../src/validators.js');
 
 //Endpoint GET todos los autores
 router.get('/', async (req, res) => {
@@ -42,6 +43,11 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'Nombre y email son requeridos' });
   }
   
+  const errorEmail = validarEmail(email); 
+  if (errorEmail) {
+    return res.status(400).json({ error: errorEmail });
+  }
+
   try {
     const result = await pool.query(
       'INSERT INTO authors (name, email, bio) VALUES ($1, $2, $3) RETURNING *',
