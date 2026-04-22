@@ -3,6 +3,7 @@ const express = require('express');
 
 const authorsRouter = require('./routes/authors');
 const postsRouter = require('./routes/posts');
+const { errorHandler } = require('./src/errorHandler.js');
 
 loadEnvFile('.env');
 const app = express();
@@ -55,6 +56,8 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Error interno del servidor' });
 });
+
+app.use(errorHandler);
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {

@@ -6,18 +6,17 @@ const pool = require('../db/config');
 const { validarEmail, validarNombre, validarId } = require('../src/validators.js');
 
 //Endpoint GET todos los autores
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const result = await pool.query('SELECT * FROM authors ORDER BY name');
     res.json(result.rows);
   } catch (error) {
-    console.error('Error obteniendo autores:', error);
-    res.status(500).json({ error: 'Error obteniendo autores' });
+    next(error);
   }
 });
 
 // GET /api/authors/:id - Obtener un autor por ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
   try {
     const result = await pool.query(
       'SELECT * FROM authors WHERE id = $1',
@@ -30,13 +29,12 @@ router.get('/:id', async (req, res) => {
     
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error obteniendo autor:', error);
-    res.status(500).json({ error: 'Error obteniendo autor' });
+    next(error);
   }
 });
 
 // POST /api/authors - Crear un nuevo autor
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   const { name, email, bio } = req.body;
   
   const errorNombre = validarNombre(name);
@@ -58,18 +56,16 @@ router.post('/', async (req, res) => {
     
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error('Error creando autor:', error);
-    
     if (error.code === '23505') {
-      return res.status(409).json({ error: 'El email ya está registrado' });
+      error.status = 409;
+      error.message = 'El email ya está registrado';
     }
-    
-    res.status(500).json({ error: 'Error creando autor' });
+    next(error);
   }
 });
 
 // PUT /api/authors/:id - Actualizar un autor
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req, res, next) => {
   const { id } = req.params;
   const { name, email, bio } = req.body;
 
@@ -101,14 +97,15 @@ router.put('/:id', async (req, res) => {
     res.json(result.rows[0]);
   } catch (error) {
     if (error.code === '23505') {
-      return res.status(409).json({ error: 'El email ya está registrado' });
+      error.status = 409;
+      error.message = 'El email ya está registrado';
     }
-    res.status(500).json({ error: 'Error actualizando autor' });
+    next(error);
   }
 });
 
 // DELETE /api/authors/:id - Eliminar un autor
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req, res, next) => {
   try {
     const result = await pool.query(
       'DELETE FROM authors WHERE id = $1',
@@ -121,8 +118,7 @@ router.delete('/:id', async (req, res) => {
     
     res.json({ message: 'Autor eliminado exitosamente' });
   } catch (error) {
-    console.error('Error eliminando autor:', error);
-    res.status(500).json({ error: 'Error eliminando autor' });
+    next(error);
   }
 });
 

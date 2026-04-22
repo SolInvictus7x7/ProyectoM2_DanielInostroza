@@ -6,7 +6,7 @@ const pool = require('../db/config');
 const { validarTexto, validarId } = require('../src/validators.js');
 
 // GET /api/posts - Obtener todos los posts
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   const { published } = req.query;
   
   try {
@@ -23,13 +23,12 @@ router.get('/', async (req, res) => {
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (error) {
-    console.error('Error obteniendo posts:', error);
-    res.status(500).json({ error: 'Error obteniendo posts' });
+    next(error);
   }
 });
 
 // GET /api/posts/:id - Obtener un post por ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
   try {
     const result = await pool.query(
       'SELECT * FROM posts WHERE id = $1',
@@ -42,13 +41,12 @@ router.get('/:id', async (req, res) => {
     
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error obteniendo post:', error);
-    res.status(500).json({ error: 'Error obteniendo post' });
+    next(error);
   }
 });
 
 // GET /api/posts/author/:authorId - Obtener posts por autor
-router.get('/author/:authorId', async (req, res) => {
+router.get('/author/:authorId', async (req, res, next) => {
   try {
     const result = await pool.query(
       'SELECT * FROM posts WHERE author_id = $1 ORDER BY created_at DESC',
@@ -57,26 +55,25 @@ router.get('/author/:authorId', async (req, res) => {
     
     res.json(result.rows);
   } catch (error) {
-    console.error('Error obteniendo posts del autor:', error);
-    res.status(500).json({ error: 'Error obteniendo posts del autor' });
+    next(error);
   }
 });
 
 // POST /api/posts - Crear un nuevo post
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   const { title, content, author_id, published } = req.body;
 
   // 1. Validar Título
   const errorTitle = validarTexto(title, 'título');
-  if (errorTitle) return res.status(errorTitle.status).json({ error: errorTitle.message });
+  if (errorTitle) return res.status(400).json({ error: errorTitle });
 
   // 2. Validar Contenido
   const errorContent = validarTexto(content, 'contenido');
-  if (errorContent) return res.status(errorContent.status).json({ error: errorContent.message });
+  if (errorContent) return res.status(400).json({ error: errorContent });
 
   // 3. Validar Author_id (formato)
   const errorId = validarId(author_id);
-  if (errorId) return res.status(errorId.status).json({ error: errorId.message });
+  if (errorId) return res.status(400).json({ error: errorId });
 
   try {
     const result = await pool.query(
@@ -86,18 +83,16 @@ router.post('/', async (req, res) => {
     
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error('Error creando post:', error);
-    
     if (error.code === '23503') {
-      return res.status(404).json({ error: 'El autor especificado no existe' });
+      error.status = 404;
+      error.message = 'El autor especificado no existe';
     }
-    
-    res.status(500).json({ error: 'Error creando post' });
+    next(error);
   }
 });
 
 // PUT /api/posts/:id - Actualizar un post
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req, res, next) => {
   const { id } = req.params;
   const { title, content, published } = req.body;
 
@@ -128,12 +123,12 @@ router.put('/:id', async (req, res) => {
     
     res.json(result.rows[0]);
   } catch (error) {
-    res.status(500).json({ error: 'Error actualizando post' });
+    next(error);
   }
 });
 
 // DELETE /api/posts/:id - Eliminar un post
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req, res, next) => {
   try {
     const result = await pool.query(
       'DELETE FROM posts WHERE id = $1',
@@ -146,8 +141,7 @@ router.delete('/:id', async (req, res) => {
     
     res.json({ message: 'Post eliminado exitosamente' });
   } catch (error) {
-    console.error('Error eliminando post:', error);
-    res.status(500).json({ error: 'Error eliminando post' });
+    next(error);
   }
 });
 
