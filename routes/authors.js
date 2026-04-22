@@ -3,7 +3,7 @@ loadEnvFile('.env');
 const express = require('express');
 const router = express.Router();
 const pool = require('../db/config');
-const { validarEmail } = require('../src/validators.js');
+const { validarEmail, validarNombre, validarId } = require('../src/validators.js');
 
 //Endpoint GET todos los autores
 router.get('/', async (req, res) => {
@@ -39,10 +39,12 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   const { name, email, bio } = req.body;
   
-  if (!name || !email) {
-    return res.status(400).json({ error: 'Nombre y email son requeridos' });
+  const errorNombre = validarNombre(name);
+  if (errorNombre) {
+    return res.status(400).json({ error: errorNombre });
   }
   
+  //VALIDAR EMAIL
   const errorEmail = validarEmail(email); 
   if (errorEmail) {
     return res.status(400).json({ error: errorEmail });
@@ -68,12 +70,28 @@ router.post('/', async (req, res) => {
 
 // PUT /api/authors/:id - Actualizar un autor
 router.put('/:id', async (req, res) => {
+  const { id } = req.params;
   const { name, email, bio } = req.body;
-  
+
+  // 1. Validar ID de la URL
+  const errorId = validarId(id);
+  if (errorId) return res.status(400).json({ error: errorId });
+
+  // 2. Validar campos solo si vienen en el body
+  if (name !== undefined) {
+    const errorNombre = validarNombre(name);
+    if (errorNombre) return res.status(400).json({ error: errorNombre });
+  }
+
+  if (email !== undefined) {
+    const errorEmail = validarEmail(email);
+    if (errorEmail) return res.status(400).json({ error: errorEmail });
+  }
+
   try {
     const result = await pool.query(
       'UPDATE authors SET name = COALESCE($1, name), email = COALESCE($2, email), bio = COALESCE($3, bio) WHERE id = $4 RETURNING *',
-      [name, email, bio, req.params.id]
+      [name, email, bio, id]
     );
     
     if (result.rows.length === 0) {
@@ -82,12 +100,9 @@ router.put('/:id', async (req, res) => {
     
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error actualizando autor:', error);
-    
     if (error.code === '23505') {
       return res.status(409).json({ error: 'El email ya está registrado' });
     }
-    
     res.status(500).json({ error: 'Error actualizando autor' });
   }
 });

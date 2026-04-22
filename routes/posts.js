@@ -3,6 +3,7 @@ loadEnvFile('.env');
 const express = require('express');
 const router = express.Router();
 const pool = require('../db/config');
+const { validarTexto, validarId } = require('../src/validators.js');
 
 // GET /api/posts - Obtener todos los posts
 router.get('/', async (req, res) => {
@@ -64,13 +65,19 @@ router.get('/author/:authorId', async (req, res) => {
 // POST /api/posts - Crear un nuevo post
 router.post('/', async (req, res) => {
   const { title, content, author_id, published } = req.body;
-  
-  if (!title || !content || !author_id) {
-    return res.status(400).json({ 
-      error: 'Título, contenido y author_id son requeridos' 
-    });
-  }
-  
+
+  // 1. Validar Título
+  const errorTitle = validarTexto(title, 'título');
+  if (errorTitle) return res.status(errorTitle.status).json({ error: errorTitle.message });
+
+  // 2. Validar Contenido
+  const errorContent = validarTexto(content, 'contenido');
+  if (errorContent) return res.status(errorContent.status).json({ error: errorContent.message });
+
+  // 3. Validar Author_id (formato)
+  const errorId = validarId(author_id);
+  if (errorId) return res.status(errorId.status).json({ error: errorId.message });
+
   try {
     const result = await pool.query(
       'INSERT INTO posts (title, content, author_id, published) VALUES ($1, $2, $3, $4) RETURNING *',
@@ -91,12 +98,28 @@ router.post('/', async (req, res) => {
 
 // PUT /api/posts/:id - Actualizar un post
 router.put('/:id', async (req, res) => {
+  const { id } = req.params;
   const { title, content, published } = req.body;
-  
+
+  // 1. Validar ID de la URL
+  const errorId = validarId(id);
+  if (errorId) return res.status(400).json({ error: errorId });
+
+  // 2. Validar texto solo si se intenta actualizar
+  if (title !== undefined) {
+    const errorTitle = validarTexto(title, 'título');
+    if (errorTitle) return res.status(400).json({ error: errorTitle });
+  }
+
+  if (content !== undefined) {
+    const errorContent = validarTexto(content, 'contenido');
+    if (errorContent) return res.status(400).json({ error: errorContent });
+  }
+
   try {
     const result = await pool.query(
       'UPDATE posts SET title = COALESCE($1, title), content = COALESCE($2, content), published = COALESCE($3, published) WHERE id = $4 RETURNING *',
-      [title, content, published, req.params.id]
+      [title, content, published, id]
     );
     
     if (result.rows.length === 0) {
@@ -105,7 +128,6 @@ router.put('/:id', async (req, res) => {
     
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error actualizando post:', error);
     res.status(500).json({ error: 'Error actualizando post' });
   }
 });

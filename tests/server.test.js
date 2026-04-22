@@ -26,7 +26,7 @@ describe('POST /api/authors', () => {
       .send({ email: 'juan@example.com' });
 
     expect(response.statusCode).toBe(400);
-    expect(response.body.error).toContain('requeridos');
+    expect(response.body.error).toContain('vacío');
   });
 
   test('rechaza request sin email', async () => {
@@ -35,7 +35,7 @@ describe('POST /api/authors', () => {
       .send({ name: 'Juan' });
 
     expect(response.statusCode).toBe(400);
-    expect(response.body.error).toContain('requeridos');
+    expect(response.body.error).toContain('requerido');
   });
 
   test('rechaza request vacío', async () => {
