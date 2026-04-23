@@ -9,7 +9,6 @@ const authorsRouter = require('./routes/authors');
 const postsRouter = require('./routes/posts');
 const { errorHandler } = require('./src/errorHandler.js');
 
-loadEnvFile('.env');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
