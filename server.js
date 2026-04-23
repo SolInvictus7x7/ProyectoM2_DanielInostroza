@@ -9,10 +9,15 @@ const authorsRouter = require('./routes/authors');
 const postsRouter = require('./routes/posts');
 const { errorHandler } = require('./src/errorHandler.js');
 
+const swaggerUi = require('swagger-ui-express');
+const YAML = require('yamljs');
+const swaggerDocument = YAML.load('./openapi.yaml');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Rutas
 app.use('/api/authors', authorsRouter);

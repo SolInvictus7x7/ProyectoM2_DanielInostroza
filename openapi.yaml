@@ -1,0 +1,160 @@
+openapi: 3.0.0
+info:
+  title: API de Blog - Proyecto M2 Daniel Inostroza
+  description: >
+    API para la gestión de autores y sus publicaciones.
+    
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor Local de Desarrollo
+  - url: https://proyectom2danielinostroza-production.up.railway.app
+    description: Servidor de Producción (Railway)
+
+components:
+  schemas:
+    Author:
+      type: object
+      required:
+        - name
+        - email
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          example: 1
+        name:
+          type: string
+          maxLength: 100
+          example: "Ana García"
+        email:
+          type: string
+          format: email
+          maxLength: 150
+          example: "ana@example.com"
+        bio:
+          type: string
+          nullable: true
+          example: "Desarrolladora full-stack"
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+
+    Post:
+      type: object
+      required:
+        - title
+        - content
+        - author_id
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 200
+          example: "Introducción a Node.js"
+        content:
+          type: string
+          example: "Contenido detallado del post..."
+        author_id:
+          type: integer
+          description: ID del autor (Foreign Key)
+        published:
+          type: boolean
+          default: false
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        status:
+          type: integer
+
+paths:
+  /api/authors:
+    get:
+      summary: Obtener todos los autores
+      tags:
+        - Autores
+      responses:
+        '200':
+          description: Lista de autores recuperada con éxito
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Author'
+    post:
+      summary: Crear un nuevo autor
+      tags:
+        - Autores
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Author'
+      responses:
+        '201':
+          description: Autor creado exitosamente
+        '400':
+          description: Datos inválidos (campo vacío o formato incorrecto)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/authors/{id}:
+    delete:
+      summary: Eliminar un autor
+      description: Elimina un autor y todos sus posts asociados (ON DELETE CASCADE).
+      tags:
+        - Autores
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Autor eliminado exitosamente
+        '404':
+          description: Autor no encontrado
+
+  /api/posts:
+    get:
+      summary: Obtener todos los posts
+      tags:
+        - Posts
+      responses:
+        '200':
+          description: Lista de posts recuperada con éxito
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+    post:
+      summary: Crear un nuevo post
+      tags:
+        - Posts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Post'
+      responses:
+        '201':
+          description: Post creado exitosamente
