@@ -1,4 +1,8 @@
 const { loadEnvFile } = require('node:process');
+if (process.env.NODE_ENV !== 'production') {
+  loadEnvFile('.env');
+}
+
 const express = require('express');
 
 const authorsRouter = require('./routes/authors');
