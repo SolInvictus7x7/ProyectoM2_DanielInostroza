@@ -20,12 +20,12 @@ API RESTful profesional para la gestión de autores y publicaciones de un blog. 
 ### 2. Instalación
 ```bash
 git clone https://github.com/SolInvictus7x7/ProyectoM2_DanielInostroza
-cd ProyectoM2_DanielInostroza
+cd ["carpeta root"]
 npm install
 ```
 
 ### 3. Base de Datos
-Ejecuta el contenido del archivo setup.sql en tu terminal de PostgreSQL o cliente favorito (como pgAdmin o DBeaver) para crear las tablas e insertar los datos iniciales:
+Ejecuta el contenido del archivo setup.sql en tu terminal de PostgreSQL para crear las tablas e insertar los datos iniciales:
 
 ```Bash
 psql -U tu_usuario -d tu_base_de_datos -f setup.sql
@@ -54,9 +54,9 @@ npm run dev
 ## 🧪 Testing y Cobertura
 Se han implementado tests unitarios y de integración para validar la lógica de negocio y la estabilidad del servidor.
 
--Ejecutar tests: npm test
-    -se pueden ejecutar los tres archivos .test.js independientemente al añadir la ruta (npm test tests/[Nombre del archivo])
--Interfaz visual de tests: npm run test:ui
+- Ejecutar tests: npm test
+    - se pueden ejecutar los tres archivos .test.js independientemente al añadir la ruta (npm test tests/[Nombre del archivo])
+- Interfaz visual de tests: npm run test:ui
 
 ---
 
