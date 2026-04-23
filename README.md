@@ -36,11 +36,11 @@ Crea un archivo .env en la raíz con tus credenciales locales:
 
 ```text
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=a_number
 DB_NAME=nombre_de_tu_db
 DB_USER=tu_usuario
 DB_PASSWORD=tu_password
-PORT=3000
+PORT=a_number
 NODE_ENV=development
 ```
 
@@ -55,9 +55,8 @@ npm run dev
 Se han implementado tests unitarios y de integración para validar la lógica de negocio y la estabilidad del servidor.
 
 -Ejecutar tests: npm test
-    se pueden ejecutar los tres archivos .test.js independientemente al añadir la ruta (/tests/["Nombre del archivo"])
+    -se pueden ejecutar los tres archivos .test.js independientemente al añadir la ruta (npm test tests/[Nombre del archivo])
 -Interfaz visual de tests: npm run test:ui
--Reporte de cobertura: npm run test:coverage
 
 ---
 
@@ -79,4 +78,4 @@ Configuración del Entorno
 Pasos de Deploy
 1. Conectar el repositorio de GitHub a Railway.
 2. Configurar el comando de inicio como npm start.
-3. Asegurar que el archivo .env no se suba al repositorio (gestionado por variables en el panel de Railway).
+3. Asegurar que el archivo .env no se suba al repositorio (entorno gestionado por variables en el panel de Railway).
